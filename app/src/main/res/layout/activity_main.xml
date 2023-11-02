@@ -7,48 +7,16 @@
     android:orientation="vertical"
     android:padding="5dp">
     <TextView
-        android:id="@+id/tvTitleGPS"
+        android:id="@+id/lastLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="gps"
         android:textSize="30sp">
     </TextView>
     <TextView
-        android:id="@+id/tvEnabledGPS"
+        android:id="@+id/locUpdate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="24sp">
     </TextView>
-    <TextView
-        android:id="@+id/tvStatusGPS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp">
-    </TextView>
-    <TextView
-        android:id="@+id/tvLocationGPS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp">
-    </TextView>
-    <TextView
-        android:id="@+id/tvStatusNet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp">
-    </TextView>
-    <TextView
-        android:id="@+id/tvLocationNet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp">
-    </TextView>
-    <Button
-        android:id="@+id/btnLocationSettings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:onClick="onClickLocationSettings"
-        android:text="1234">
-    </Button>
 </LinearLayout>
