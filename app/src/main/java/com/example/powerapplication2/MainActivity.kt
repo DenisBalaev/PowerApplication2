@@ -36,39 +36,9 @@ open class MainActivity : AppCompatActivity(R.layout.activity_main) {
     val binding by viewBinding(ActivityMainBinding::bind)
     private val TAG = "LocationActivity"
     var fusedClient: FusedLocationProviderClient? = null
-    private var mRequest: LocationRequest? = null
-    private var mCallback: LocationCallback? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        mCallback = object : LocationCallback() {
-            //This callback is where we get "streaming" location updates. We can check things like accuracy to determine whether
-            //this latest update should replace our previous estimate.
-            override fun onLocationResult(locationResult: LocationResult?) {
-                if (locationResult == null) {
-                    Log.d(TAG, "locationResult null")
-                    return
-                }
-                Log.d(
-                    TAG,
-                    "received " + locationResult.getLocations().size.toString() + " locations"
-                )
-                for (loc in locationResult.getLocations()) {
-                    binding.locUpdate.append(
-                        """
-                                                        
-                                                        ${loc.provider}:Accu:(${loc.accuracy}). Lat:${loc.latitude},Lon:${loc.longitude}
-                                                        """.trimIndent()
-                    )
-                }
-            }
-
-            override fun onLocationAvailability(locationAvailability: LocationAvailability) {
-                Log.d(TAG, "locationAvailability is " + locationAvailability.isLocationAvailable)
-                super.onLocationAvailability(locationAvailability)
-            }
-        }
 
         //permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -104,63 +74,11 @@ open class MainActivity : AppCompatActivity(R.layout.activity_main) {
         fusedClient!!.lastLocation.addOnSuccessListener { location ->
             if (location != null) {
                 val loc =
-                    location.provider + ":Accu:(" + location.accuracy + "). Lat:" + location.latitude + ",Lon:" + location.longitude
+                    location.provider + " ${formatLocation(location)}"
                 binding.lastLocation.text = loc
             }
         }
-
-
-        //now for receiving constant location updates:
-        createLocRequest()
-        val builder: LocationSettingsRequest.Builder = LocationSettingsRequest.Builder()
-            .addLocationRequest(mRequest!!)
-
-        //This checks whether the GPS mode (high accuracy,battery saving, device only) is set appropriately for "mRequest". If the current settings cannot fulfil
-        //mRequest(the Google Fused Location Provider determines these automatically), then we listen for failutes and show a dialog box for the user to easily
-        //change these settings.
-        val client: SettingsClient = LocationServices.getSettingsClient(this@MainActivity)
-        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-        task.addOnFailureListener { e ->
-            if (e is ResolvableApiException) {
-                // Location settings are not satisfied, but this can be fixed
-                // by showing the user a dialog.
-                try {
-                    // Show the dialog by calling startResolutionForResult(),
-                    // and check the result in onActivityResult().
-                    val resolvable: ResolvableApiException = e as ResolvableApiException
-                    resolvable.startResolutionForResult(this@MainActivity, 500)
-                } catch (sendEx: IntentSender.SendIntentException) {
-                    // Ignore the error.
-                }
-            }
-        }
-
-        //actually start listening for updates: See on Resume(). It's done there so that conveniently we can stop listening in onPause
     }
-
-    override fun onResume() {
-        super.onResume()
-        startLocationUpdates()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        fusedClient?.removeLocationUpdates(mCallback)
-    }
-
-    @SuppressLint("MissingPermission")
-    protected fun startLocationUpdates() {
-        fusedClient?.requestLocationUpdates(mRequest, mCallback, null)
-    }
-
-
-    private fun createLocRequest() {
-        mRequest = LocationRequest()
-        mRequest!!.interval = 10000 //time in ms; every ~10 seconds
-        mRequest!!.fastestInterval = 5000
-        mRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-    }
-
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -170,7 +88,7 @@ open class MainActivity : AppCompatActivity(R.layout.activity_main) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             2 -> {
-                if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, "Thanks bud", Toast.LENGTH_SHORT).show()
                     locationWizardry()
                 } else {
@@ -198,4 +116,8 @@ open class MainActivity : AppCompatActivity(R.layout.activity_main) {
         dialog.show()
     }
 
+    @SuppressLint("DefaultLocale")
+    private fun formatLocation(location: Location?): String? {
+        return if (location == null) "" else "${location.latitude} ${location.longitude}"
+    }
 }
